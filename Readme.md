@@ -1,0 +1,1 @@
+I am creating a project management curriculum based on Java, Spring, PostgreSQL. Daily refinement and change.
