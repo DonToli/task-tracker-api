@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class TaskDtoFactory {
 
-    public TaskDto makeProjectDto(TaskEntity entity){
+    public TaskDto makeTaskDto(TaskEntity entity){
 
         return TaskDto.builder()
                 .id(entity.getId())

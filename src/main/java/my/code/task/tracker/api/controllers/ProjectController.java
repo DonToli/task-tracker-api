@@ -4,10 +4,10 @@ package my.code.task.tracker.api.controllers;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import my.code.task.tracker.api.controllers.helpers.ControllerHelper;
 import my.code.task.tracker.api.dto.AckDto;
 import my.code.task.tracker.api.dto.ProjectDto;
 import my.code.task.tracker.api.exceptions.BadRequestException;
-import my.code.task.tracker.api.exceptions.NotFoundException;
 import my.code.task.tracker.api.factories.ProjectDtoFactory;
 import my.code.task.tracker.store.entities.ProjectEntity;
 import my.code.task.tracker.store.repositories.ProjectRepository;
@@ -26,6 +26,8 @@ import java.util.stream.Stream;
 @RestController
 public class ProjectController {
 
+    ControllerHelper controllerHelper;
+
     ProjectRepository projectRepository;
 
     ProjectDtoFactory projectDtoFactory;
@@ -33,7 +35,7 @@ public class ProjectController {
     public static final String FETCH_PROJECTS = "/api/projects";
     public static final String DELETE_PROJECT = "/api/projects/{project_id}";
 
-    public static final String CREATE_OR_UPDATE_PROJECT = "/apiprojects";
+    public static final String CREATE_OR_UPDATE_PROJECT = "/api/projects";
 
     @GetMapping(FETCH_PROJECTS)
     public List<ProjectDto> fetchProjects(
@@ -43,7 +45,7 @@ public class ProjectController {
 
         Stream<ProjectEntity> projectStream = optionalPrefixName
                 .map(projectRepository::streamAllByNameStartsWithIgnoreCase)
-                .orElseGet(projectRepository::streamAll);
+                .orElseGet(projectRepository::streamAllBy);
 
         return projectStream
                 .map(projectDtoFactory::makeProjectDto)
@@ -62,14 +64,14 @@ public class ProjectController {
 
         boolean isCreate = !optionalProjectId.isPresent();
 
-        if (isCreate && !optionalProjectId.isPresent()) {
+        if (isCreate && !optionalProjectName.isPresent()) {
 
             throw new BadRequestException("Project name can't be empty.");
 
         }
 
         final ProjectEntity project = optionalProjectId
-                .map(this::getProjectOrThrowException)
+                .map(controllerHelper::getProjectOrThrowException)
                 .orElseGet(() -> ProjectEntity.builder().build());
 
 
@@ -95,21 +97,13 @@ public class ProjectController {
     @DeleteMapping(DELETE_PROJECT)
     public AckDto deleteProject(@PathVariable("project_id") Long projectId) {
 
-        getProjectOrThrowException(projectId);
+        controllerHelper.getProjectOrThrowException(projectId);
         projectRepository.deleteById(projectId);
 
         return AckDto.maeDefault(true);
 
     }
 
-    private ProjectEntity getProjectOrThrowException(Long projectId) {
-        return projectRepository
-                .findById(projectId)
-                .orElseThrow(() ->
-                        new NotFoundException(
-                                String.format(
-                                        "Project with \"%s\" doesn't exist.", projectId))
-                );
-    }
+
 
 }

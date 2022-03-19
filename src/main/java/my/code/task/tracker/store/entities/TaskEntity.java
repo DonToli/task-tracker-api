@@ -21,7 +21,6 @@ public class TaskEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     Long id;
 
-    @Column(unique = true)
     String name;
 
     @Builder.Default
